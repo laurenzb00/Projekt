@@ -1,4 +1,3 @@
-cat > /home/laurenz2/Projekt/api_server_sqlite_dashboard.py <<'EOF'
 #!/usr/bin/env python3
 from __future__ import annotations
 
@@ -6,6 +5,7 @@ import os
 import sqlite3
 from pathlib import Path
 from typing import Optional
+
 from flask import Flask, jsonify, Response
 
 app = Flask(__name__)
@@ -17,6 +17,7 @@ PORT = int(os.getenv("PORT", "5000"))
 
 _conn: Optional[sqlite3.Connection] = None
 
+
 def _connect() -> sqlite3.Connection:
     global _conn
     if _conn is None:
@@ -24,19 +25,41 @@ def _connect() -> sqlite3.Connection:
         _conn = sqlite3.connect(str(DB_FILE), timeout=30, check_same_thread=False)
         _conn.row_factory = sqlite3.Row
         _conn.execute("PRAGMA journal_mode=WAL;")
-        _conn.execute("""
+        _conn.execute("PRAGMA synchronous=NORMAL;")
+        _conn.execute("PRAGMA busy_timeout=30000;")
+
+        _conn.execute(
+            """
             CREATE TABLE IF NOT EXISTS fronius(
                 ts TEXT PRIMARY KEY,
-                pv_kw REAL, grid_kw REAL, battery_kw REAL, load_kw REAL, soc REAL
+                pv_kw REAL,
+                grid_kw REAL,
+                battery_kw REAL,
+                load_kw REAL,
+                soc REAL
             );
-        """)
-        _conn.execute("""
+            """
+        )
+        _conn.execute(
+            """
             CREATE TABLE IF NOT EXISTS bmk(
                 ts TEXT PRIMARY KEY,
-                boiler_temp REAL, outside_temp REAL, buffer_top REAL, buffer_mid REAL, buffer_bottom REAL, hot_water REAL
+                boiler_temp REAL,
+                outside_temp REAL,
+                buffer_top REAL,
+                buffer_mid REAL,
+                buffer_bottom REAL,
+                hot_water REAL
             );
-        """)
+            """
+        )
     return _conn
+
+
+@app.get("/api/health")
+def health():
+    return jsonify(status="ok", data_dir=str(DATA_DIR), db=str(DB_FILE), db_exists=DB_FILE.exists())
+
 
 @app.get("/api/latest")
 def latest():
@@ -45,11 +68,12 @@ def latest():
     b = c.execute("SELECT * FROM bmk ORDER BY ts DESC LIMIT 1").fetchone()
     return jsonify(fronius=dict(f) if f else None, bmk=dict(b) if b else None)
 
+
 @app.get("/dashboard")
 def dashboard():
     html = """<!doctype html><html><head><meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Dashboard</title>
+    <title>Energy Dashboard</title>
     <style>
       body{font-family:system-ui;background:#111;color:#eee;margin:0;padding:16px}
       .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
@@ -86,6 +110,6 @@ def dashboard():
     </script></body></html>"""
     return Response(html, mimetype="text/html")
 
+
 if __name__ == "__main__":
     app.run(host=HOST, port=PORT)
-EOF
