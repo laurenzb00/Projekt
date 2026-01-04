@@ -6,8 +6,8 @@ Collector-Dienst (SQLite only) für Raspberry Pi 3
 - Speichert Zeitreihen in SQLite (energy.db)
 
 Environment (optional):
-    FRONIUS_URL="http://<fronius-ip>/solar_api/v1/GetPowerFlowRealtimeData.fcgi"
-    BMK_URL="http://<bmk-ip>/daqdata.cgi"
+    FRONIUS_URL="http://192.168.1.202/solar_api/v1/GetPowerFlowRealtimeData.fcgi"
+    BMK_URL="http://192.168.1.201/daqdata.cgi"
     DATA_DIR="/home/pi/datenerfassung"      # default: aktuelles Verzeichnis
     DB_FILE="energy.db"                     # default: energy.db
     FRONIUS_INTERVAL_S="1"                  # default: 1
