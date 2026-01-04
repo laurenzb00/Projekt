@@ -1,0 +1,23 @@
+[Unit]
+Description=Energy Collector (SQLite) - Fronius + BMK
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=pi
+WorkingDirectory=/home/pi/datenerfassungsprojekt
+Environment=DATA_DIR=/home/pi/datenerfassung
+Environment=DB_FILE=energy.db
+Environment=FRONIUS_INTERVAL_S=1
+Environment=BMK_INTERVAL_S=10
+# Optional overrides:
+# Environment=FRONIUS_URL=http://<fronius-ip>/solar_api/v1/GetPowerFlowRealtimeData.fcgi
+# Environment=BMK_URL=http://<bmk-ip>/daqdata.cgi
+ExecStart=/usr/bin/python3 /home/pi/datenerfassungsprojekt/collector_pi3_sqlite.py
+Restart=always
+RestartSec=3
+LogRateLimitIntervalSec=0
+
+[Install]
+WantedBy=multi-user.target

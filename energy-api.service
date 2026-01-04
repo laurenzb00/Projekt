@@ -1,0 +1,22 @@
+[Unit]
+Description=Energy API (Flask + SQLite) - serves data for dashboards
+After=network-online.target energy-collector.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=pi
+WorkingDirectory=/home/pi/datenerfassungsprojekt
+Environment=DATA_DIR=/home/pi/datenerfassung
+Environment=DB_FILE=energy.db
+Environment=HOST=0.0.0.0
+Environment=PORT=5000
+# Optional token (recommended if you later access via VPN/Reverse Proxy)
+# Environment=AUTH_TOKEN=change-me
+ExecStart=/usr/bin/python3 /home/pi/datenerfassungsprojekt/api_server_sqlite.py
+Restart=always
+RestartSec=3
+LogRateLimitIntervalSec=0
+
+[Install]
+WantedBy=multi-user.target
